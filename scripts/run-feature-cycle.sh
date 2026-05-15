@@ -39,7 +39,15 @@ fi
 
 initial_feature() {
   awk '
-    $0 ~ /^## Feature$/ { getline; getline; print; exit }
+    $0 ~ /^## Feature$/ { capture = 1; next }
+    capture {
+      gsub(/\r/, "", $0)
+      if ($0 ~ /^[[:space:]]*$/) {
+        next
+      }
+      print
+      exit
+    }
   ' docs/management/current-task.md | tr -d "\r"
 }
 
