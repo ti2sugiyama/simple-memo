@@ -9,6 +9,7 @@ export type MemoItem = {
 export type MemoDocument = {
   memoId: MemoId;
   title: string;
+  body: string;
   items: MemoItem[];
   updatedAt?: string;
 };

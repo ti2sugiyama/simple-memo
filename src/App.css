@@ -107,6 +107,26 @@ h1 {
   font-weight: 700;
 }
 
+.status-pill[data-state='saving'] {
+  background: #fff3da;
+  color: #8a5a00;
+}
+
+.status-pill[data-state='saved'] {
+  background: #e5f6ea;
+  color: #1f6d3b;
+}
+
+.status-pill[data-state='error'] {
+  background: #ffe7ea;
+  color: #a02b42;
+}
+
+.status-pill[data-state='loading'] {
+  background: #edf1f7;
+  color: #55657d;
+}
+
 .memo-path {
   margin-top: 4px;
   color: #5f7394;
@@ -137,13 +157,100 @@ h1 {
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.75);
 }
 
-.memo-list ul {
-  margin: 0;
-  padding: 0 0 0 18px;
+.memo-editor textarea:disabled {
+  cursor: progress;
+  opacity: 0.72;
 }
 
-.memo-list li + li {
-  margin-top: 6px;
+.memo-meta {
+  margin: -2px 0 0;
+  color: #5f7394;
+  font-size: 0.88rem;
+}
+
+.item-form {
+  display: grid;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.item-form label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #24364f;
+}
+
+.item-form-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.item-form input {
+  min-width: 0;
+  min-height: 48px;
+  border: 1px solid rgba(16, 32, 48, 0.15);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.94);
+  color: #122033;
+}
+
+.item-form input:disabled {
+  cursor: progress;
+  opacity: 0.72;
+}
+
+.item-form button {
+  min-height: 48px;
+  border: 0;
+  border-radius: 16px;
+  padding: 0 18px;
+  background: linear-gradient(180deg, #2c67bf 0%, #2457a5 100%);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 10px 20px rgba(36, 87, 165, 0.18);
+}
+
+.item-form button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+  box-shadow: none;
+}
+
+.memo-list ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.memo-item + .memo-item {
+  margin-top: 10px;
+}
+
+.memo-item label {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(16, 32, 48, 0.1);
+  border-radius: 16px;
+  padding: 12px 14px;
+  background: rgba(255, 255, 255, 0.86);
+  color: #122033;
+}
+
+.memo-item input[type='checkbox'] {
+  width: 18px;
+  height: 18px;
+  margin: 0;
+  accent-color: #2457a5;
+}
+
+.empty-state {
+  margin: 0;
+  color: #5f7394;
+  font-size: 0.92rem;
 }
 
 @media (max-width: 640px) {
@@ -159,5 +266,9 @@ h1 {
   .memo-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .item-form-row {
+    grid-template-columns: 1fr;
   }
 }

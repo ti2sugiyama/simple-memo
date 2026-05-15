@@ -37,11 +37,81 @@ export const resolveMemoIdFromPathname = (pathname: string): MemoId => {
 export const createMemoDocument = (
   memoId: MemoId,
   title: string,
+  body = '',
   items: MemoItem[] = [],
   updatedAt?: string,
 ): MemoDocument => ({
   memoId,
   title,
+  body,
   items: items.map((item) => ({ ...item })),
   updatedAt,
 });
+
+export const updateMemoBody = (memo: MemoDocument, body: string): MemoDocument => ({
+  ...memo,
+  body,
+  updatedAt: new Date().toISOString(),
+});
+
+export const updateMemoContent = (
+  memo: MemoDocument,
+  body: string,
+  items: MemoItem[],
+): MemoDocument => ({
+  ...memo,
+  body,
+  items: items.map((item) => ({ ...item })),
+  updatedAt: new Date().toISOString(),
+});
+
+export const addMemoItem = (memo: MemoDocument, text: string): MemoDocument => {
+  const normalizedText = text.trim();
+
+  if (!normalizedText) {
+    return memo;
+  }
+
+  return {
+    ...memo,
+    items: [
+      ...memo.items.map((item) => ({ ...item })),
+      {
+        id: createMemoId(),
+        text: normalizedText,
+        checked: false,
+      },
+    ],
+    updatedAt: new Date().toISOString(),
+  };
+};
+
+export const completeMemoItem = (memo: MemoDocument, itemId: string): MemoDocument => {
+  let hasChanges = false;
+
+  const items = memo.items.map((item) => {
+    if (item.id !== itemId || item.checked) {
+      return { ...item };
+    }
+
+    hasChanges = true;
+
+    return {
+      ...item,
+      checked: true,
+    };
+  });
+
+  if (!hasChanges) {
+    return memo;
+  }
+
+  return {
+    ...memo,
+    items,
+    updatedAt: new Date().toISOString(),
+  };
+};
+
+export const getActiveMemoItems = (memo: MemoDocument): MemoItem[] =>
+  memo.items.filter((item) => !item.checked).map((item) => ({ ...item }));
