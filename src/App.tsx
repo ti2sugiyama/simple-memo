@@ -1,14 +1,22 @@
-import type { MemoDocument, MemoItem } from './types';
+import {
+  createMemoDocument,
+  createMemoPath,
+  resolveMemoIdFromPathname,
+} from './domain/memo';
+import type { MemoItem } from './types';
 
-const sampleMemo: MemoDocument = {
-  id: 'x9f2j',
-  title: '家族の買い物メモ',
-  items: [
+const pathname = typeof window === 'undefined' ? '/' : window.location.pathname;
+const memoId = resolveMemoIdFromPathname(pathname);
+
+const sampleMemo = createMemoDocument(
+  memoId,
+  '家族の買い物メモ',
+  [
     { id: '1', text: '牛乳', checked: false },
     { id: '2', text: '卵', checked: true },
     { id: '3', text: 'パン', checked: false },
   ],
-};
+);
 
 const visibleItems = sampleMemo.items.filter((item) => !item.checked);
 
@@ -29,7 +37,7 @@ export default function App() {
           <div>
             <p className="memo-label">Memo</p>
             <strong>{sampleMemo.title}</strong>
-            <div className="memo-path">/{sampleMemo.id}</div>
+            <div className="memo-path">{createMemoPath(sampleMemo.memoId)}</div>
           </div>
           <span className="status-pill">framework ready</span>
         </div>

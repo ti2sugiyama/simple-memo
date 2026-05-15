@@ -1,3 +1,5 @@
+export type MemoId = string;
+
 export type MemoItem = {
   id: string;
   text: string;
@@ -5,7 +7,7 @@ export type MemoItem = {
 };
 
 export type MemoDocument = {
-  id: string;
+  memoId: MemoId;
   title: string;
   items: MemoItem[];
   updatedAt?: string;
