@@ -1,0 +1,134 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+MAX_TASKS="${MAX_TASKS:-10}"
+EXTRA_INSTRUCTION="${EXTRA_INSTRUCTION:-}"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --instruction)
+      if [ $# -lt 2 ]; then
+        echo "--instruction requires a value" >&2
+        exit 2
+      fi
+      EXTRA_INSTRUCTION="${2:-}"
+      shift 2
+      ;;
+    --max-tasks)
+      if [ $# -lt 2 ]; then
+        echo "--max-tasks requires a value" >&2
+        exit 2
+      fi
+      MAX_TASKS="${2:-$MAX_TASKS}"
+      shift 2
+      ;;
+    *)
+      echo "Unknown argument: $1" >&2
+      echo "Usage: $0 [--max-tasks N] [--instruction \"text\"]" >&2
+      exit 2
+      ;;
+  esac
+done
+
+mkdir -p docs/management docs/results
+
+if ! command -v codex >/dev/null 2>&1; then
+  echo "codex command not found. Install or expose Codex CLI before running this script." >&2
+  exit 127
+fi
+
+initial_feature() {
+  awk '
+    $0 ~ /^## Feature$/ { getline; getline; print; exit }
+  ' docs/management/current-task.md | tr -d "\r"
+}
+
+is_feature_done() {
+  local current_feature="$1"
+
+  if [ -z "${current_feature}" ] || [ "${current_feature}" = "-" ]; then
+    return 1
+  fi
+
+  awk -F'|' -v feature="${current_feature}" '
+    function trim(s) {
+      gsub(/^[ \t`]+|[ \t`]+$/, "", s)
+      return s
+    }
+    BEGIN {
+      has_target = 0
+      all_done = 1
+    }
+    /^\|/ {
+      task = trim($2)
+      row_feature = trim($3)
+      state = trim($4)
+      if (task == "Task" || task == "---" || row_feature == "") {
+        next
+      }
+      if (row_feature == feature) {
+        has_target = 1
+        if (state != "done") {
+          all_done = 0
+        }
+      }
+    }
+    END {
+      if (has_target == 1 && all_done == 1) {
+        exit 0
+      }
+      exit 1
+    }
+  ' docs/management/task-status.md
+}
+
+TARGET_FEATURE="$(initial_feature)"
+
+if [ -z "$TARGET_FEATURE" ]; then
+  echo "Cannot determine target feature from docs/management/current-task.md" >&2
+  exit 1
+fi
+
+for i in $(seq 1 "$MAX_TASKS"); do
+  echo "=================================="
+  echo " Task cycle $i / $MAX_TASKS"
+  echo "=================================="
+
+  if [ -f docs/management/STOP_REQUIRED.md ]; then
+    echo "STOP_REQUIRED.md exists. Stop."
+    cat docs/management/STOP_REQUIRED.md
+    exit 0
+  fi
+
+  if is_feature_done "$TARGET_FEATURE"; then
+    if [ -n "$EXTRA_INSTRUCTION" ]; then
+      echo "Current feature is already done. Continue because --instruction is provided."
+    else
+      echo "Current feature is already done. Stop."
+      exit 0
+    fi
+  fi
+
+  if [ -n "$EXTRA_INSTRUCTION" ]; then
+    ./scripts/run-one-task.sh --instruction "$EXTRA_INSTRUCTION"
+  else
+    ./scripts/run-one-task.sh
+  fi
+
+  if [ -f docs/management/STOP_REQUIRED.md ]; then
+    echo "STOP_REQUIRED.md created. Stop."
+    cat docs/management/STOP_REQUIRED.md
+    exit 0
+  fi
+
+  if is_feature_done "$TARGET_FEATURE"; then
+    echo "Current feature is done. Stop."
+    exit 0
+  fi
+
+  echo "Task cycle $i finished."
+done
+
+echo "Reached MAX_TASKS=$MAX_TASKS."
+echo "If the Feature seems complete, run:"
+echo "./scripts/run-feature-finish.sh"
